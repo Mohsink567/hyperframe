@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Montserrat:wght@700;800;900&family=Playfair+Display:ital,wght@1,700&display=block" />
+    <script src="assets/media/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; background: #0b0b0c; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0b0b0c; font-family: "Montserrat", sans-serif; --red: #e8262b; }
+      #world { position: absolute; inset: 0; }
+      #cam { position: absolute; inset: 0; transform-origin: 50% 40%; }
+      #spk { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+      .shot { position: absolute; inset: 0; overflow: hidden; opacity: 0; }
+      .kb { position: absolute; inset: 0; }
+      .kb video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: contrast(1.05) saturate(1.06); }
+      .stbg { position: absolute; inset: 0; background: radial-gradient(ellipse 75% 55% at 50% 40%, #b3171c 0%, #6d0b0e 55%, #2a0507 100%); }
+      .stbg::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(135deg, rgba(255,255,255,.035) 0 22px, transparent 22px 44px); }
+      .kb img.stk { position: absolute; left: 60px; top: 230px; width: 960px; height: 960px; object-fit: contain; filter: drop-shadow(0 30px 50px rgba(0,0,0,.45)); }
+      .anton { font-family: "Anton", sans-serif; text-transform: uppercase; }
+      .bt { position: absolute; left: 0; right: 0; text-align: center; line-height: .9; white-space: nowrap; opacity: 0; }
+      .bt .s { display: block; font-size: 100px; color: #ffd9a0; font-family: "Playfair Display", serif; font-style: italic; font-weight: 700; text-transform: none; text-shadow: 0 8px 26px rgba(0,0,0,.45); }
+      .bt .b { display: block; color: #fff; text-shadow: 0 14px 40px rgba(0,0,0,.4); }
+      .bt .b.red { color: #e8262b; }
+      .cut { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+      .kin { position: absolute; left: 0; right: 0; text-align: center; z-index: 42; opacity: 0; white-space: nowrap; }
+      .kin span { display: inline-block; padding: 16px 38px 10px; border-radius: 18px; background: #fff; color: #141416; font-size: 118px; line-height: 1; box-shadow: 0 18px 40px rgba(0,0,0,.35); }
+      .kin span b { color: #e8262b; font-weight: 400; }
+      #stamp { position: absolute; left: 0; right: 0; top: 1020px; text-align: center; z-index: 43; opacity: 0; }
+      #stamp span { display: inline-block; padding: 14px 40px 10px; border: 10px solid #1f8f42; border-radius: 22px; color: #1f8f42; background: rgba(255,255,255,.95); font-size: 116px; letter-spacing: .04em; transform: rotate(-7deg); box-shadow: 0 18px 40px rgba(0,0,0,.35); }
+      #flash { position: absolute; inset: 0; z-index: 55; background: #fff; opacity: 0; pointer-events: none; }
+      #leak { position: absolute; left: -300px; top: 0; width: 1680px; height: 1920px; z-index: 54; opacity: 0; mix-blend-mode: screen; pointer-events: none;
+        background: radial-gradient(ellipse 520px 900px at 30% 40%, rgba(255,90,40,.7), transparent 70%), radial-gradient(ellipse 320px 600px at 75% 30%, rgba(255,40,50,.5), transparent 70%); }
+      #captions { position: absolute; left: 40px; right: 40px; top: 1450px; height: 110px; z-index: 40; }
+      .cap { position: absolute; left: 0; right: 0; top: 0; text-align: center; opacity: 0; }
+      .bx { display: inline-block; padding: 10px 24px 14px; border-radius: 18px; background: #fff; box-shadow: 0 16px 34px rgba(0,0,0,0.3); white-space: nowrap; }
+      .w { display: inline-block; margin: 0 10px; font-weight: 900; font-size: 58px; line-height: 1.1; color: #707076; letter-spacing: -0.015em; }
+      .tg { position: absolute; left: 40px; right: 40px; top: 1450px; text-align: center; z-index: 41; opacity: 0; }
+      .tg .bx { font-weight: 900; font-size: 70px; color: #141416; letter-spacing: -0.02em; }
+      .tg .bx b { color: var(--red); }
+      #tag { position: absolute; left: 0; right: 0; top: 150px; text-align: center; z-index: 41; opacity: 0; }
+      #tag span { display: inline-block; padding: 14px 30px 12px; border-radius: 12px; background: var(--red); color: #fff; font-weight: 900; font-size: 44px; letter-spacing: 0.08em; box-shadow: 0 14px 30px rgba(120,10,10,0.35); }
+      #grain { position: absolute; left: -200px; top: -200px; width: 1480px; height: 2320px; z-index: 50; opacity: 0.05; mix-blend-mode: overlay; pointer-events: none;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='240' height='240' filter='url(%23n)'/></svg>"); }
+      #cta { position: absolute; inset: 0; overflow: hidden; z-index: 60; }
+      .cream { position: absolute; inset: 0; background: radial-gradient(ellipse 70% 45% at 50% 44%, #fbf8f2 0%, rgba(251,248,242,0) 70%), linear-gradient(180deg, #f5efe5 0%, #ece3d5 100%); }
+      #ec-logo { position: absolute; left: 200px; top: 420px; width: 680px; height: 428px; }
+      #ec-logo img { width: 100%; height: 100%; display: block; filter: drop-shadow(0 20px 36px rgba(60,20,10,0.22)); }
+      .c { position: absolute; left: 40px; right: 40px; text-align: center; white-space: nowrap; }
+      #ec-line { top: 920px; font-weight: 800; font-size: 60px; color: #1d1d1f; letter-spacing: -0.015em; }
+      #ec-line em { font-family: "Playfair Display", serif; font-style: italic; font-weight: 700; color: #c0161d; }
+      #ec-phone { top: 1070px; }
+      #ec-pill { position: relative; display: inline-flex; align-items: center; gap: 22px; padding: 22px 52px; border-radius: 80px; overflow: hidden; background: linear-gradient(180deg, #a07624 0%, #7a5510 100%); box-shadow: 0 16px 36px rgba(120,80,10,0.28), inset 0 2px 0 rgba(255,255,255,0.35); color: #fff; text-shadow: 0 2px 6px rgba(60,35,0,0.45); font-weight: 800; font-size: 70px; }
+      #ec-pill svg { width: 60px; height: 60px; }
+      #shine { position: absolute; top: -30px; left: 0; width: 120px; height: 200px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent); }
+      #ec-tag { top: 1270px; font-family: "Playfair Display", serif; font-style: italic; font-weight: 700; font-size: 58px; color: #b5121b; }
+      #ec-web { top: 1390px; font-weight: 800; font-size: 34px; letter-spacing: 0.16em; color: #5b544b; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="34.40" data-width="1080" data-height="1920">
+      <div id="world">
+      <div id="cam"><video id="spk" class="clip" src="assets/media/speaker.mp4" playsinline data-has-audio="true" data-volume="1" data-start="1.50" data-duration="21.00" data-media-start="0.3" data-track-index="0"></video>
+        <div class="bt anton" id="bt1" style="top:520px" data-layout-allow-occlusion><span class="b red" style="font-size:400px">45</span><span class="b" style="font-size:190px">Minutes</span></div>
+        <div class="bt anton" id="bt2" style="top:620px" data-layout-allow-occlusion><span class="s">asking for</span><span class="b red" style="font-size:225px">Proof?</span></div>
+        <video id="ck1" class="clip cut" src="assets/media/cut_s1.webm" muted playsinline data-start="6.30" data-duration="3.30" data-track-index="5"></video>
+        <video id="ck2" class="clip cut" src="assets/media/cut_s2.webm" muted playsinline data-start="19.60" data-duration="2.90" data-track-index="5"></video>
+      </div>
+      <div class="shot" id="s0" style="z-index:5"><div class="kb" id="kb0" data-layout-allow-overflow><div class="stbg"></div><img id="b0" class="clip stk" src="assets/media/st_6weeks.webp" alt="" data-start="0.00" data-duration="1.50" data-track-index="2" /></div></div>
+      <div class="shot" id="s1" style="z-index:6"><div class="kb" id="kb1" data-layout-allow-overflow><video id="b1" class="clip" src="assets/media/n3.mp4" muted playsinline data-start="3.20" data-duration="2.15" data-media-start="0.0" data-track-index="3"></video></div></div>
+      <div class="shot" id="s2" style="z-index:7"><div class="kb" id="kb2" data-layout-allow-overflow><video id="b2" class="clip" src="assets/media/n3.mp4" muted playsinline data-start="5.00" data-duration="1.30" data-media-start="4.3" data-track-index="2"></video></div></div>
+      <div class="shot" id="s3" style="z-index:8"><div class="kb" id="kb3" data-layout-allow-overflow><div class="stbg"></div><img id="b3" class="clip stk" src="assets/media/st_45min.webp" alt="" data-start="9.50" data-duration="2.75" data-track-index="3" /></div></div>
+      <div class="shot" id="s4" style="z-index:9"><div class="kb" id="kb4" data-layout-allow-overflow><video id="b4" class="clip" src="assets/media/a0.mp4" muted playsinline data-start="11.90" data-duration="2.35" data-media-start="0.4" data-track-index="2"></video></div></div>
+      <div class="shot" id="s5" style="z-index:10"><div class="kb" id="kb5" data-layout-allow-overflow><div class="stbg"></div><img id="b5" class="clip stk" src="assets/media/st_docs.webp" alt="" data-start="13.90" data-duration="2.35" data-track-index="3" /></div></div>
+      <div class="shot" id="s6" style="z-index:11"><div class="kb" id="kb6" data-layout-allow-overflow><div class="stbg"></div><img id="b6" class="clip stk" src="assets/media/st_vs.webp" alt="" data-start="15.90" data-duration="3.80" data-track-index="2" /></div></div>
+      <div class="shot" id="s7" style="z-index:12"><div class="kb" id="kb7" data-layout-allow-overflow><video id="b7" class="clip" src="assets/media/n1.mp4" muted playsinline data-start="22.50" data-duration="1.85" data-media-start="5.0" data-track-index="3"></video></div></div>
+      <div class="shot" id="s8" style="z-index:13"><div class="kb" id="kb8" data-layout-allow-overflow><video id="b8" class="clip" src="assets/media/a3.mp4" muted playsinline data-start="24.00" data-duration="1.95" data-media-start="3.2" data-track-index="2"></video></div></div>
+      <div class="shot" id="s9" style="z-index:14"><div class="kb" id="kb9" data-layout-allow-overflow><video id="b9" class="clip" src="assets/media/n2.mp4" muted playsinline data-start="25.60" data-duration="2.35" data-media-start="3.95" data-track-index="3"></video></div></div>
+      <div class="shot" id="s10" style="z-index:15"><div class="kb" id="kb10" data-layout-allow-overflow><video id="b10" class="clip" src="assets/media/n0.mp4" muted playsinline data-start="27.60" data-duration="2.00" data-media-start="3.0" data-track-index="2"></video></div></div>
+      </div>
+      <div class="kin anton" id="k-denied" style="top:1260px"><span>Claim <b>Denied?</b> 😳</span></div>
+      <div id="stamp"><span class="anton">Approved ✓</span></div>
+      <div id="leak"></div>
+      <div id="flash"></div>
+      <div id="tag"><span>WHAT WE SEND YOUR ADJUSTER</span></div>
+      <div id="captions">
+        <div class="cap" id="c0"><span class="bx"><span class="w" id="w0_0">Let</span> <span class="w" id="w0_1">me</span> <span class="w" id="w0_2">show</span> <span class="w" id="w0_3">you</span></span></div>
+        <div class="cap" id="c1"><span class="bx"><span class="w" id="w1_0">what</span> <span class="w" id="w1_1">we</span> <span class="w" id="w1_2">actually</span> <span class="w" id="w1_3">send</span></span></div>
+        <div class="cap" id="c2"><span class="bx"><span class="w" id="w2_0">your</span> <span class="w hl" id="w2_1">adjuster.</span></span></div>
+        <div class="cap" id="c3"><span class="bx"><span class="w" id="w3_0">This</span> <span class="w" id="w3_1">is</span> <span class="w hl" id="w3_2">45</span> <span class="w hl" id="w3_3">minutes</span></span></div>
+        <div class="cap" id="c4"><span class="bx"><span class="w" id="w4_0">of</span> <span class="w" id="w4_1">someone's</span> <span class="w" id="w4_2">time</span></span></div>
+        <div class="cap" id="c5"><span class="bx"><span class="w" id="w5_0">on</span> <span class="w hl" id="w5_1">day</span> <span class="w hl" id="w5_2">one.</span></span></div>
+        <div class="cap" id="c6"><span class="bx"><span class="w" id="w6_0">And</span> <span class="w" id="w6_1">it's</span> <span class="w" id="w6_2">the</span> <span class="w hl" id="w6_3">difference</span></span></div>
+        <div class="cap" id="c7"><span class="bx"><span class="w" id="w7_0">between</span> <span class="w" id="w7_1">your</span> <span class="w hl" id="w7_2">claim</span></span></div>
+        <div class="cap" id="c8"><span class="bx"><span class="w" id="w8_0">getting</span> <span class="w hl" id="w8_1">approved</span></span></div>
+        <div class="cap" id="c9"><span class="bx"><span class="w" id="w9_0">and</span> <span class="w" id="w9_1">you</span> <span class="w" id="w9_2">getting</span> <span class="w" id="w9_3">a</span> <span class="w hl" id="w9_4">phone</span> <span class="w hl" id="w9_5">call</span></span></div>
+        <div class="cap" id="c10"><span class="bx"><span class="w" id="w10_0">in</span> <span class="w hl" id="w10_1">six</span> <span class="w hl" id="w10_2">weeks</span></span></div>
+        <div class="cap" id="c11"><span class="bx"><span class="w" id="w11_0">asking</span> <span class="w" id="w11_1">for</span> <span class="w hl" id="w11_2">proof</span></span></div>
+        <div class="cap" id="c12"><span class="bx"><span class="w" id="w12_0">you</span> <span class="w hl" id="w12_1">don't</span> <span class="w" id="w12_2">have.</span></span></div>
+      </div>
+      <div class="tg" id="tg1"><span class="bx">All of it. <b>Day 1.</b></span></div>
+      <div class="tg" id="tg2"><span class="bx">Claim <b>approved.</b> ✅</span></div>
+      <div id="cta" class="clip" data-start="29.60" data-duration="4.80" data-track-index="4">
+        <div class="cream"></div>
+        <div id="ec-logo"><img src="assets/media/crew_logo.png" alt="CREW — Restore, Revamp, Rebuild" /></div>
+        <div class="c" id="ec-line">Insurance claim? <em>Call CREW.</em></div>
+        <div class="c" id="ec-phone"><span id="ec-pill"><svg viewBox="0 0 24 24" fill="#fff"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z" /></svg>605-965-2727<i id="shine" data-layout-allow-overflow></i></span></div>
+        <div class="c" id="ec-tag">“We Are The Crew That Cares.”</div>
+        <div class="c" id="ec-web">SIOUX FALLS, SD · CREW3R.COM</div>
+      </div>
+      <div id="grain"></div>
+    </div>
+    <audio id="music" src="assets/media/music.wav" data-start="0" data-duration="34.40" data-volume="1" data-track-index="10" data-automation='{"version": 1, "lanes": [{"target": "volume", "points": [{"t": 0, "v": 0.7}, {"t": 1.4, "v": 0.7}, {"t": 1.7, "v": 0.3}, {"t": 22.3, "v": 0.3}, {"t": 22.8, "v": 0.8}, {"t": 34.4, "v": 0.8}]}]}'></audio>
+    <audio id="x0" src="assets/media/ring.wav" data-start="0.05" data-duration="1.4" data-volume="0.45" data-track-index="20"></audio>
+    <audio id="x1" src="assets/media/whoosh-short.mp3" data-start="3.10" data-duration="0.57" data-volume="0.09" data-track-index="21"></audio>
+    <audio id="x2" src="assets/media/whoosh-short.mp3" data-start="4.90" data-duration="0.57" data-volume="0.09" data-track-index="22"></audio>
+    <audio id="x3" src="assets/media/whoosh-short.mp3" data-start="6.20" data-duration="0.57" data-volume="0.08" data-track-index="23"></audio>
+    <audio id="x4" src="assets/media/pop.mp3" data-start="9.52" data-duration="0.7" data-volume="0.1" data-track-index="24"></audio>
+    <audio id="x5" src="assets/media/whoosh-short.mp3" data-start="11.80" data-duration="0.57" data-volume="0.09" data-track-index="25"></audio>
+    <audio id="x6" src="assets/media/pop.mp3" data-start="13.92" data-duration="0.7" data-volume="0.1" data-track-index="26"></audio>
+    <audio id="x7" src="assets/media/pop.mp3" data-start="15.10" data-duration="0.7" data-volume="0.12" data-track-index="27"></audio>
+    <audio id="x8" src="assets/media/pop.mp3" data-start="15.92" data-duration="0.7" data-volume="0.1" data-track-index="28"></audio>
+    <audio id="x9" src="assets/media/whoosh-short.mp3" data-start="16.50" data-duration="0.57" data-volume="0.08" data-track-index="29"></audio>
+    <audio id="x10" src="assets/media/whoosh-short.mp3" data-start="17.30" data-duration="0.57" data-volume="0.08" data-track-index="30"></audio>
+    <audio id="x11" src="assets/media/whoosh-short.mp3" data-start="19.60" data-duration="0.57" data-volume="0.08" data-track-index="31"></audio>
+    <audio id="x12" src="assets/media/whoosh-cinematic.mp3" data-start="22.35" data-duration="1.4" data-volume="0.12" data-track-index="32"></audio>
+    <audio id="x13" src="assets/media/whoosh-short.mp3" data-start="22.40" data-duration="0.57" data-volume="0.09" data-track-index="33"></audio>
+    <audio id="x14" src="assets/media/whoosh-short.mp3" data-start="23.90" data-duration="0.57" data-volume="0.09" data-track-index="34"></audio>
+    <audio id="x15" src="assets/media/whoosh-short.mp3" data-start="25.50" data-duration="0.57" data-volume="0.09" data-track-index="35"></audio>
+    <audio id="x16" src="assets/media/whoosh-short.mp3" data-start="27.50" data-duration="0.57" data-volume="0.09" data-track-index="36"></audio>
+    <audio id="x17" src="assets/media/chime.mp3" data-start="29.65" data-duration="2.0" data-volume="0.14" data-track-index="37"></audio>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      const EO = "power3.out";
+      function enter(sel, t) {
+        tl.fromTo(sel, { opacity: 0, scale: 1.06, filter: "blur(10px)" }, { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.3, ease: EO }, t);
+      }
+      function cap(sel, a, b) {
+        tl.fromTo(sel, { opacity: 0, y: 16, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.22, ease: "back.out(1.8)" }, Math.max(0, a - 0.06));
+        tl.to(sel, { opacity: 0, duration: 0.08 }, b - 0.08);
+      }
+      function word(sel, t) {
+        const el = document.querySelector(sel);
+        tl.fromTo(sel, { color: "#707076" }, { color: el && el.classList.contains("hl") ? "#e8262b" : "#141416", duration: 0.06, immediateRender: false }, t);
+        tl.fromTo(sel, { scale: 1 }, { scale: 1.06, duration: 0.08, yoyo: true, repeat: 1, ease: "power1.out", immediateRender: false }, t);
+      }
+      function tag(sel, a, b) {
+        tl.fromTo(sel, { opacity: 0, y: 20, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: "back.out(1.8)" }, a);
+        tl.to(sel, { opacity: 0, duration: 0.15 }, b - 0.15);
+      }
+      function flash(t, p = 0.6, d = 0.28) { tl.fromTo("#flash", { opacity: p }, { opacity: 0, duration: d, ease: "power2.out", immediateRender: false }, t); }
+      function shake(t, dur, amp) {
+        const n = Math.round(dur / 0.04);
+        for (let i = 0; i < n; i++) { const k = 1 - i / n; tl.to("#world", { x: Math.sin(i * 2.7 + t * 13) * amp * k, y: Math.cos(i * 3.9 + t * 7) * amp * 0.8 * k, duration: 0.04, ease: "none" }, t + i * 0.04); }
+        tl.to("#world", { x: 0, y: 0, duration: 0.05 }, t + n * 0.04);
+      }
+      function leak(t, d = 1.0) {
+        tl.fromTo("#leak", { opacity: 0, x: -500 }, { opacity: 0.7, x: -100, duration: d * 0.45, ease: "power2.out", immediateRender: false }, t);
+        tl.to("#leak", { opacity: 0, x: 400, duration: d * 0.55, ease: "power2.in" }, t + d * 0.45);
+      }
+      tl.set("#cam", { scale: 1 }, 0);
+      tl.set("#world", { x: 0, y: 0 }, 0);
+  word("#w0_0", 1.760);
+  word("#w0_1", 2.240);
+  word("#w0_2", 2.480);
+  word("#w0_3", 2.800);
+  cap("#c0", 1.760, 3.040);
+  word("#w1_0", 3.040);
+  word("#w1_1", 3.440);
+  word("#w1_2", 3.760);
+  word("#w1_3", 4.000);
+  cap("#c1", 3.040, 4.480);
+  word("#w2_0", 4.480);
+  word("#w2_1", 4.720);
+  cap("#c2", 4.480, 6.640);
+  word("#w3_0", 6.640);
+  word("#w3_1", 6.960);
+  word("#w3_2", 7.440);
+  word("#w3_3", 8.560);
+  cap("#c3", 6.640, 9.120);
+  word("#w4_0", 9.120);
+  word("#w4_1", 9.360);
+  word("#w4_2", 10.160);
+  cap("#c4", 9.120, 10.400);
+  word("#w5_0", 10.400);
+  word("#w5_1", 10.720);
+  word("#w5_2", 11.120);
+  cap("#c5", 10.400, 11.920);
+  word("#w6_0", 11.920);
+  word("#w6_1", 12.080);
+  word("#w6_2", 12.560);
+  word("#w6_3", 12.880);
+  cap("#c6", 11.920, 13.680);
+  word("#w7_0", 13.680);
+  word("#w7_1", 14.160);
+  word("#w7_2", 14.400);
+  cap("#c7", 13.680, 14.960);
+  word("#w8_0", 14.960);
+  word("#w8_1", 15.200);
+  cap("#c8", 14.960, 16.400);
+  word("#w9_0", 16.400);
+  word("#w9_1", 16.720);
+  word("#w9_2", 16.960);
+  word("#w9_3", 17.280);
+  word("#w9_4", 17.440);
+  word("#w9_5", 17.840);
+  cap("#c9", 16.400, 18.080);
+  word("#w10_0", 18.080);
+  word("#w10_1", 18.320);
+  word("#w10_2", 18.640);
+  cap("#c10", 18.080, 19.200);
+  word("#w11_0", 19.200);
+  word("#w11_1", 19.680);
+  word("#w11_2", 19.920);
+  cap("#c11", 19.200, 20.800);
+  word("#w12_0", 20.800);
+  word("#w12_1", 21.040);
+  word("#w12_2", 21.600);
+  cap("#c12", 20.800, 22.500);
+  tl.set("#s0", { opacity: 1 }, 0);
+  tl.fromTo("#b0", { scale: 0.6, rotation: -6 }, { scale: 1, rotation: 0, duration: 0.45, ease: "back.out(2)" }, 0.00);
+  tl.fromTo("#b0", { y: 0 }, { y: -30, duration: 1.05, ease: "none" }, 0.45);
+  tl.to("#s0", { opacity: 0, duration: 0.2, ease: "power1.inOut" }, 1.45);
+  enter("#s1", 3.20);
+  tl.fromTo("#kb1", { scale: 1.04 }, { scale: 1.12, duration: 2.15, ease: "none" }, 3.20);
+  tl.set("#s1", { opacity: 0 }, 5.35);
+  enter("#s2", 5.00);
+  tl.fromTo("#kb2", { scale: 1.04 }, { scale: 1.12, duration: 1.30, ease: "none" }, 5.00);
+  tl.to("#s2", { opacity: 0, duration: 0.2, ease: "power1.inOut" }, 6.25);
+  tl.fromTo("#s3", { opacity: 0 }, { opacity: 1, duration: 0.12 }, 9.50);
+  tl.fromTo("#b3", { scale: 0.6, rotation: -6 }, { scale: 1, rotation: 0, duration: 0.45, ease: "back.out(2)" }, 9.50);
+  tl.fromTo("#b3", { y: 0 }, { y: -30, duration: 1.95, ease: "none" }, 9.95);
+  tl.set("#s3", { opacity: 0 }, 12.25);
+  enter("#s4", 11.90);
+  tl.fromTo("#kb4", { scale: 1.04 }, { scale: 1.12, duration: 2.35, ease: "none" }, 11.90);
+  tl.set("#s4", { opacity: 0 }, 14.25);
+  tl.fromTo("#s5", { opacity: 0 }, { opacity: 1, duration: 0.12 }, 13.90);
+  tl.fromTo("#b5", { scale: 0.6, rotation: -6 }, { scale: 1, rotation: 0, duration: 0.45, ease: "back.out(2)" }, 13.90);
+  tl.fromTo("#b5", { y: 0 }, { y: -30, duration: 1.55, ease: "none" }, 14.35);
+  tl.set("#s5", { opacity: 0 }, 16.25);
+  tl.fromTo("#s6", { opacity: 0 }, { opacity: 1, duration: 0.12 }, 15.90);
+  tl.fromTo("#b6", { scale: 0.6, rotation: -6 }, { scale: 1, rotation: 0, duration: 0.45, ease: "back.out(2)" }, 15.90);
+  tl.to("#b6", { scale: 1.32, x: 190, y: 40, duration: 0.5, ease: "power3.inOut" }, 16.50);
+  tl.to("#b6", { x: -150, duration: 0.55, ease: "power3.inOut" }, 17.3);
+  tl.to("#b6", { scale: 1.0, x: 0, y: 0, duration: 0.5, ease: "power3.inOut" }, 18.95);
+  tl.to("#s6", { opacity: 0, duration: 0.2, ease: "power1.inOut" }, 19.65);
+  enter("#s7", 22.50);
+  tl.fromTo("#kb7", { scale: 1.04 }, { scale: 1.12, duration: 1.85, ease: "none" }, 22.50);
+  tl.set("#s7", { opacity: 0 }, 24.35);
+  enter("#s8", 24.00);
+  tl.fromTo("#kb8", { scale: 1.04 }, { scale: 1.12, duration: 1.95, ease: "none" }, 24.00);
+  tl.set("#s8", { opacity: 0 }, 25.95);
+  enter("#s9", 25.60);
+  tl.fromTo("#kb9", { scale: 1.04 }, { scale: 1.12, duration: 2.35, ease: "none" }, 25.60);
+  tl.set("#s9", { opacity: 0 }, 27.95);
+  enter("#s10", 27.60);
+  tl.fromTo("#kb10", { scale: 1.04 }, { scale: 1.12, duration: 2.00, ease: "none" }, 27.60);
+  tl.fromTo("#cam", { scale: 1.0 }, { scale: 1.03, duration: 1.70, ease: "none" }, 1.50);
+  tl.fromTo("#cam", { scale: 1.0 }, { scale: 1.05, duration: 3.20, ease: "none" }, 6.30);
+  tl.fromTo("#cam", { scale: 1.02 }, { scale: 1.06, duration: 2.80, ease: "none" }, 19.70);
+      // cold open
+      tl.fromTo("#k-denied", { opacity: 0, scale: 1.5, rotation: -6 }, { opacity: 1, scale: 1, rotation: -3, duration: 0.25, ease: "back.out(2)" }, 0.35);
+      tl.to("#k-denied", { opacity: 0, duration: 0.12 }, 1.42);
+      tl.fromTo("#tag", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.3, ease: EO }, 1.6);
+      tl.to("#tag", { opacity: 0, duration: 0.2 }, 3.05);
+      // behind-head words
+      tl.set("#bt1", { opacity: 1 }, 7.4);
+      tl.fromTo("#bt1 .b.red", { opacity: 0, scale: 1.8 }, { opacity: 1, scale: 1, duration: 0.22, ease: "power4.out" }, 7.4);
+      tl.fromTo("#bt1 .b:not(.red)", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.25, ease: EO }, 8.55);
+      tl.set("#bt1", { opacity: 0 }, 9.5);
+      tl.set("#bt2", { opacity: 1 }, 19.75);
+      tl.fromTo("#bt2 .s", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.25, ease: EO }, 19.75);
+      tl.fromTo("#bt2 .b", { opacity: 0, scale: 1.7 }, { opacity: 1, scale: 1, duration: 0.22, ease: "power4.out" }, 19.84);
+      tl.set("#bt2", { opacity: 0 }, 22.5);
+      // approved stamp
+      tl.fromTo("#stamp", { opacity: 0, scale: 2.2 }, { opacity: 1, scale: 1, duration: 0.2, ease: "power4.in" }, 15.1);
+      tl.to("#stamp", { opacity: 0, duration: 0.15 }, 15.85);
+      // outro tags
+      tag("#tg1", 22.65, 25.55); tag("#tg2", 27.75, 29.6);
+      // hits
+      flash(0, 0.8, 0.35); shake(0.02, 0.5, 18); shake(0.75, 0.4, 14);
+      flash(1.5, 0.45, 0.25); leak(1.45, 1.0);
+      flash(7.4, 0.55, 0.3); shake(7.42, 0.35, 16);
+      flash(9.5, 0.4, 0.25);
+      shake(15.3, 0.3, 14);
+      flash(19.84, 0.5, 0.25); shake(19.86, 0.3, 14);
+      flash(22.5, 0.45, 0.3); leak(22.45, 1.0);
+      // CTA
+      tl.fromTo("#cta", { opacity: 0 }, { opacity: 1, duration: 0.45, ease: "power1.inOut" }, 29.60);
+      tl.fromTo("#ec-logo", { opacity: 0, y: 30, scale: 0.96 }, { opacity: 1, y: 0, scale: 1, duration: 0.7, ease: EO }, 29.60 + 0.2);
+      tl.fromTo("#ec-line", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.5, ease: EO }, 29.60 + 0.55);
+      tl.fromTo("#ec-phone", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.5, ease: EO }, 29.60 + 0.8);
+      tl.fromTo("#ec-tag", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: EO }, 29.60 + 1.05);
+      tl.fromTo("#ec-web", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 29.60 + 1.3);
+      tl.fromTo("#shine", { x: -200 }, { x: 760, duration: 0.9, ease: "power2.inOut" }, 29.60 + 1.6);
+      for (let i = 0; i < 34.40 * 12; i++) tl.set("#grain", { x: ((i * 73) % 200) - 100, y: ((i * 131) % 200) - 100 }, i / 12);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
